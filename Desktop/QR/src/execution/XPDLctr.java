@@ -1,9 +1,4 @@
-/*
- * To change this template, choose Tools | Templates
- * andimport java.io.*;
-import org.jdom.*;
-import org.jdom.output.*; open the template in the editor.
- */
+
 package execution;
 
 import java.io.*;
