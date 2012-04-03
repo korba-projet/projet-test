@@ -5,6 +5,7 @@ import java.io.*;
 import java.util.Date;
 import org.jdom.*;
 import org.jdom.output.*;
+
 /**
  *
  * @author Kubik
@@ -18,9 +19,10 @@ public class XPDLctr {
  
  //niveau d'imbrication
  private static int level = 5;
-  
-private static void createXpdlDocument(Element xpdl){
-    //the cutials elements of the header
+ private static String joinSpecification = "A DEFINIR";
+ 
+private static void createXpdlDocument(Element xpdl)  throws JDOMException {
+    //the crutials elements of the header
     String xmlns_xpdl = "http://www.wfmc.org/2002/XPDL1.0";
     String xmlns_xsi = "http://www.w3.org/2001/XMLSchema-instance";
     String xmlns_location = "xsi:schemaLocation=\"http://www.wfmc.org/2002/XPDL1.0 ";
@@ -74,7 +76,7 @@ private static void createHeader(){
     createDate.setText(date.toString()); 
 }
 
-private static void createWorkflow(){
+private static void createWorkflow()  throws JDOMException {
 // build header of workflow processes
  Element workflowProcesses = new Element("WorkflowProcesses");
  xpdlElement.addContent(workflowProcesses);
@@ -91,7 +93,7 @@ private static void createWorkflow(){
      * IL FAUT PRENDRE EN COMPTE ILYA FORMALPARAMETERS
      * DATAFIELDS APPLICATION
      */
- // create activitys and transitions
+ // create activities and transitions
     addActivities(workflowProcess);   
     addTransitions(workflowProcess);
 }
@@ -101,6 +103,7 @@ private static void addActivities(Element workflowProcess){
     workflowProcess.addContent(activities);
    
 for (int i = 1; i <= level ; i++) {
+    // char tmpAsci = (char)('A' + i - 1); - pour gerer les caracteres
          String id = Integer.toString(i);
          Element activity = addActivity(id);
          activities.addContent(activity);
@@ -114,24 +117,95 @@ private static Element addActivity(String id){
     
 Element activity = new Element("Activity");
 
- activity.setAttribute("Id", id);
- activity.setAttribute("Name", id);
+/*********************************************/
+ activity.setAttribute("Id", id); //IDEE A B C D
+ activity.setAttribute("Name", id); //IDEE A B C D
  Element implementation = new Element("Implementation");
  implementation.addContent(new Element("No"));
  activity.addContent(implementation);
- Element transitionRestrictions = addTransitionRestrictions();
+ 
+ 
+  Element startmode = new Element("StartMode");
+  startmode.addContent(new Element("Automatic"));
+  activity.addContent(startmode);
+  Element finishmode = new Element("FinishMode");
+  finishmode.addContent(new Element("Automatic"));
+  activity.addContent(finishmode);
+ 
+  /*add tag restrictions*/
+  Element transitionRestrictions = addTransitionRestrictions();
+  activity.addContent(transitionRestrictions);
+  
 return activity;
 }
-/*A IPLEMENTER ********************************************************/
+
 private static Element addTransitionRestrictions(){
-Element restrictions = new Element("TransitionRestrictions");
+ Element restrictions = new Element("TransitionRestrictions");
+ Element interRestrictions = new Element("TransitionRestriction");
+  // Join Type
+  Element join = new Element("Join");
+  join.setAttribute("Type", joinSpecification);
+  interRestrictions.addContent(join);
+  // Split Type = "AND"
+  Element split = new Element("Split");
+  split.setAttribute("Type", joinSpecification);
+  interRestrictions.addContent(split);
+  restrictions.addContent(interRestrictions);
+  
 return restrictions;
 }
-/*A IPLEMENTER ********************************************************/
-private static Element addTransitions(Element workflowProcess){
+
+
+private static void addTransitions(Element workflowProcess)  throws JDOMException {
+    
 Element transition = new Element("Transitions");
-return transition;
-}
+  String toId1 = null;
+  String toId2 = null;
+  int tmp=0;
+  for (int i = 1; i <= level ; i++) {
+      for (int j = 1; j <= i; j++) { 
+    if (((i+j) > (level)) || (i == level)) {
+        break;
+    }
+    String fromId = Integer.toString(i) + Integer.toString(j);
+    if (( i <= level/2 ) && ((i + j + 1) < (level  + 1))) { 
+        tmp = i + 1 + j;
+        toId2 = Integer.toString(i+1) + Integer.toString(j+1);
+        if ((i + j + 1) < (level  + 1)) {
+        tmp = i + 1 + j;
+        toId1 = Integer.toString(i+1) + Integer.toString(j);
+        }
+    } else {
+        if ((i + j) < (level  + 1)) {
+        
+        toId2 = Integer.toString(i+1) + Integer.toString(j-1);
+        }
+        if ((j -1) > 0) {
+        toId2 = Integer.toString(tmp);
+        
+        }  
+    }
+    addTransition(transition, fromId + "To" + toId1, fromId, toId1);
+    addTransition(transition, fromId + "To" + toId2, fromId, toId2);
+    toId1 = null;
+    toId2 = null;  
+      }  
+  }
+  
+  workflowProcess.addContent(transition);
+    }
+  
+private static void addTransition (Element transitions, String id, String from, String to)
+  throws JDOMException {
+  if ((id == null) || (from == null) || (to == null)) {
+      return;
+  }
+  Element transition = new Element("Transition");
+  transition.setAttribute("Id", id);
+  transition.setAttribute("From", from);
+  transition.setAttribute("To", to);
+  transitions.addContent(transition);
+  }
 
 static void showDocument()
 {
@@ -147,7 +221,7 @@ catch (java.io.IOException e){}
 
 /* MAIN */
 
-public static void main(String[] args)
+public static void main(String[] args) throws JDOMException
 {
  
  xpdlElement = new Element("Package");
