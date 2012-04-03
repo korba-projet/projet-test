@@ -159,38 +159,13 @@ return restrictions;
 private static void addTransitions(Element workflowProcess)  throws JDOMException {
     
 Element transition = new Element("Transitions");
-  String toId1 = null;
-  String toId2 = null;
-  int tmp=0;
-  for (int i = 1; i <= level ; i++) {
-      for (int j = 1; j <= i; j++) { 
-    if (((i+j) > (level)) || (i == level)) {
-        break;
-    }
-    String fromId = Integer.toString(i) + Integer.toString(j);
-    if (( i <= level/2 ) && ((i + j + 1) < (level  + 1))) { 
-        tmp = i + 1 + j;
-        toId2 = Integer.toString(i+1) + Integer.toString(j+1);
-        if ((i + j + 1) < (level  + 1)) {
-        tmp = i + 1 + j;
-        toId1 = Integer.toString(i+1) + Integer.toString(j);
-        }
-    } else {
-        if ((i + j) < (level  + 1)) {
-        
-        toId2 = Integer.toString(i+1) + Integer.toString(j-1);
-        }
-        if ((j -1) > 0) {
-        toId2 = Integer.toString(tmp);
-        
-        }  
-    }
+    /*A IMPLEMENTER*/
+    String fromId = "";
+    String toId1 = "";
+    String toId2 = "";
     addTransition(transition, fromId + "To" + toId1, fromId, toId1);
     addTransition(transition, fromId + "To" + toId2, fromId, toId2);
-    toId1 = null;
-    toId2 = null;  
-      }  
-  }
+      
   
   workflowProcess.addContent(transition);
     }
